@@ -1,0 +1,79 @@
+    var G = 1;
+var Planet = function(x, y, mass, color) {
+    this.position = new PVector(x, y);
+    this.mass = mass;
+    this.color = color;
+};
+
+Planet.prototype.calculateAttraction = function(m) {
+    var force = PVector.sub(this.position, m.position);
+    var distance = force.mag();
+    distance = constrain(distance, 5, 25);  
+    force.normalize();
+    var strength = (G * this.mass * m.mass) / (distance * distance);
+    force.mult(strength);
+    return force;
+};
+
+Planet.prototype.display = function() {
+    ellipseMode(CENTER);
+    strokeWeight(4);
+    stroke(0);
+    fill(this.color);
+    ellipse(this.position.x, this.position.y, this.mass, this.mass);
+};
+
+
+var Mover = function(mass, y) {
+    this.position = new PVector(400, y);
+    this.velocity = new PVector(1, 0);
+    this.acceleration = new PVector(0, 0);
+    this.mass = mass;
+    this.color = color(255, 255, 255);
+};
+  
+Mover.prototype.applyForce = function(force) {
+    var f = PVector.div(force,this.mass);
+    this.acceleration.add(f);
+};
+  
+Mover.prototype.update = function() {
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(10);
+    this.position.add(this.velocity);
+    this.acceleration.mult(0);
+};
+Mover.prototype.checkEdges = function(){
+    if(this.x < 0){
+        this.x = 400;
+    }
+};
+
+Mover.prototype.display = function() {
+    noStroke();
+
+    fill(this.color);
+    ellipse(this.position.x, this.position.y, this.mass, this.mass);
+};
+
+var movers = [];
+var sun = new Planet(-475, 200, 1000, color(255, 219, 36));
+
+for (var i = 0; i < 10; i++) {
+var col = color(random(0,255), random(0,255), random(0,255), random(0,100));
+    
+    movers[i] = new Mover(random(0.1, 2), random(height));
+}
+
+draw = function() {
+    background(36, 36, 105);
+    
+    sun.display();
+    for (var i = 0; i < movers.length; i++) {
+        var force = sun.calculateAttraction(movers[i]);
+        movers[i].applyForce(force);
+        movers[i].update();
+        movers[i].display();
+        movers[i].checkEdges();
+    }
+};
